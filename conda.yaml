@@ -1,0 +1,9 @@
+name: affiliate-link-checker
+
+dependencies:
+    - python=3.8
+    - numpy
+    - pandas
+    - pip:
+      - scrapy
+      - requests
