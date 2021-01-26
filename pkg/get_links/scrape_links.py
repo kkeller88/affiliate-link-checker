@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import requests
 
 from scrapy.spiders import SitemapSpider
 from scrapy.crawler import CrawlerProcess
@@ -30,14 +29,26 @@ class SitemapScraper(SitemapSpider):
         extractor = LxmlLinkExtractor(
             deny_domains=[DOMAIN] + SOCIAL_DOMAINS
             )
-        links = extractor.extract_links(response)
-        for link in links:
+        text_links = extractor.extract_links(response)
+        for link in text_links:
             yield {
+                'type': 'text',
                 'link': link.url,
                 'page': response.url,
                 'anchor_text': link.text,
                 'response_code': getResponseCode(link.url)
                 }
+        iframe_links = response.css('iframe::attr(src)').extract()
+        for link in iframe_links:
+            yield {
+                'type': 'iframe',
+                'link': link,
+                'page': response.url,
+                'anchor_text': 'iframe',
+                'response_code': getResponseCode(link)
+                }
+
+
 
 def crawl_pages(output_path):
     c = CrawlerProcess({
