@@ -1,4 +1,5 @@
 import os
+import datetime
 from pathlib import Path
 
 from scrapy.spiders import SitemapSpider
@@ -26,6 +27,7 @@ class SitemapScraper(SitemapSpider):
         )]
 
     def parse(self, response):
+        crawl_date = datetime.datetime.now().strftime('%Y/%m/%d')
         extractor = LxmlLinkExtractor(
             deny_domains=[DOMAIN] + SOCIAL_DOMAINS
             )
@@ -36,7 +38,8 @@ class SitemapScraper(SitemapSpider):
                 'link': link.url,
                 'page': response.url,
                 'anchor_text': link.text,
-                'response_code': getResponseCode(link.url)
+                'response_code': getResponseCode(link.url),
+                'crawl_date': crawl_date
                 }
         iframe_links = response.css('iframe::attr(src)').extract()
         for link in iframe_links:
@@ -45,15 +48,15 @@ class SitemapScraper(SitemapSpider):
                 'link': link,
                 'page': response.url,
                 'anchor_text': 'iframe',
-                'response_code': getResponseCode(link)
+                'response_code': getResponseCode(link),
+                'crawl_date': crawl_date
                 }
-
 
 
 def crawl_pages(output_path):
     c = CrawlerProcess({
         'USER_AGENT': 'Mozilla/5.0',
-        'FEED_FORMAT': 'json',     # csv, json, xml
+        'FEED_FORMAT': 'json',
         'FEED_URI': output_path, #
     })
     c.crawl(SitemapScraper)
